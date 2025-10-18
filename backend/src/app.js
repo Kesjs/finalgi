@@ -54,12 +54,26 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Middleware de débogage
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] Requête reçue : ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 // API Routes
-app.use('/api/auth', require('./routes/auth.routes'));
-app.use('/api/users', require('./routes/user.routes'));
-app.use('/api/investments', require('./routes/investment.routes'));
-app.use('/api/transactions', require('./routes/transaction.routes'));
-app.use('/api/referrals', require('./routes/referral.routes'));
+const authRoutes = require('./routes/auth.routes');
+const userRoutes = require('./routes/user.routes');
+const investmentRoutes = require('./routes/investment.routes');
+const transactionRoutes = require('./routes/transaction.routes');
+const referralRoutes = require('./routes/referral.routes');
+const dashboardRoutes = require('./routes/dashboard.routes');
+
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/investments', investmentRoutes);
+app.use('/api/transactions', transactionRoutes);
+app.use('/api/referrals', referralRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // 404 Handler
 app.use((req, res) => {
