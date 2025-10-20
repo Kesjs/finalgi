@@ -3,7 +3,6 @@ services:
   - type: web
     name: gazoduc-backend
     env: node
-    plan: free
     region: frankfurt
     buildCommand: |
       cd backend && \
@@ -34,7 +33,6 @@ services:
   - type: web
     name: gazoduc-frontend
     env: static
-    plan: free
     buildCommand: |
       cd frontend && \
       npm install && \
