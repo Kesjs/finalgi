@@ -1,8 +1,28 @@
 require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
 const { createServer } = require('http');
-const app = require('./src/app');
 const logger = require('./src/utils/logger');
-const { notFound } = require('./src/middleware/error.middleware');
+const { notFound, errorHandler } = require('./src/middleware/error.middleware');
+
+// Initialisation de l'application Express
+const app = express();
+
+// Middleware
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  credentials: true
+}));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Routes
+app.use('/api/users', require('./src/routes/user.routes'));
+
+// Gestion des erreurs
+app.use(notFound);
+app.use(errorHandler);
 
 // Créer le serveur HTTP
 const httpServer = createServer(app);
@@ -10,7 +30,6 @@ const httpServer = createServer(app);
 // Gestion des erreurs non capturées
 process.on('uncaughtException', (error) => {
   logger.error('Uncaught Exception:', error);
-  // Ne pas arrêter le processus en développement pour faciliter le débogage
   if (process.env.NODE_ENV === 'production') {
     process.exit(1);
   }
@@ -21,13 +40,13 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 // Démarrer le serveur
-const PORT = process.env.PORT || 5000;
-const server = httpServer.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT}`);
-  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+const PORT = process.env.PORT || 10000;
+const server = httpServer.listen(PORT, '0.0.0.0', () => {
+  logger.info(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+  logger.info(`CORS allowed origin: ${process.env.CORS_ORIGIN || 'http://localhost:3000'}`);
 });
 
-// Gestion des erreurs du serveur
+// Gestion de l'arrêt propre du serveur
 server.on('error', (error) => {
   if (error.syscall !== 'listen') {
     throw error;
