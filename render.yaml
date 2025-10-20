@@ -35,7 +35,6 @@ services:
     name: gazoduc-frontend
     env: static
     plan: free
-    region: frankfurt
     buildCommand: |
       cd frontend && \
       npm install && \
