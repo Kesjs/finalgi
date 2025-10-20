@@ -22,6 +22,12 @@ const changePasswordValidation = [
     .withMessage('Password must be at least 6 characters long')
 ];
 
+const toggleTwoFactorValidation = [
+  body('enabled')
+    .isBoolean()
+    .withMessage('Enabled flag must be a boolean')
+];
+
 // Routes protégées
 router.use(authenticate);
 
@@ -46,10 +52,23 @@ router.put(
 );
 
 // Changer le mot de passe
-router.post(
+router.patch(
   '/change-password',
   validate(changePasswordValidation),
   userController.changePassword
+);
+
+// Récupérer l'état de sécurité (2FA)
+router.get(
+  '/security',
+  userController.getSecuritySettings
+);
+
+// Activer/Désactiver la 2FA
+router.post(
+  '/two-factor-authentication',
+  validate(toggleTwoFactorValidation),
+  userController.toggleTwoFactorAuth
 );
 
 // Télécharger une photo de profil

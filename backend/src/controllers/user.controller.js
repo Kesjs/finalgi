@@ -1,5 +1,15 @@
 const { createError } = require('http-errors');
+const bcrypt = require('bcryptjs');
 const supabase = require('../config/supabase');
+
+// Stockage en mémoire pour les réglages 2FA (fallback pour l'environnement de dev)
+const twoFactorStore = new Map();
+
+const generateBackupCodes = (count = 10) => {
+  return Array.from({ length: count }, () =>
+    Array.from({ length: 4 }, () => Math.floor(Math.random() * 9000 + 1000)).join('-')
+  );
+};
 
 // Obtenir le profil d'un utilisateur
 exports.getUserProfile = async (req, res, next) => {
@@ -101,6 +111,10 @@ exports.changePassword = async (req, res, next) => {
       throw createError(404, 'User not found');
     }
 
+    if (!user.password_hash) {
+      throw createError(400, 'Password change is not available for this account type');
+    }
+
     const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
     if (!isMatch) {
       throw createError(400, 'Current password is incorrect');
@@ -123,6 +137,66 @@ exports.changePassword = async (req, res, next) => {
     res.json({
       success: true,
       message: 'Password updated successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Activer/désactiver l'authentification à deux facteurs
+exports.toggleTwoFactorAuth = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const { enabled } = req.body;
+
+    if (typeof enabled !== 'boolean') {
+      throw createError(400, 'Enabled flag must be a boolean');
+    }
+
+    let backupCodes = [];
+
+    if (enabled) {
+      backupCodes = generateBackupCodes();
+      twoFactorStore.set(userId, {
+        enabled: true,
+        backupCodes,
+        updatedAt: new Date().toISOString()
+      });
+    } else {
+      twoFactorStore.set(userId, {
+        enabled: false,
+        backupCodes: [],
+        updatedAt: new Date().toISOString()
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        twoFactorAuth: enabled,
+        backupCodes
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Récupérer l'état de sécurité de l'utilisateur
+exports.getSecuritySettings = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const settings = twoFactorStore.get(userId) || {
+      enabled: false,
+      backupCodes: []
+    };
+
+    res.json({
+      success: true,
+      data: {
+        twoFactorAuth: settings.enabled,
+        backupCodes: settings.backupCodes
+      }
     });
   } catch (error) {
     next(error);
