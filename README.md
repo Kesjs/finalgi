@@ -78,6 +78,19 @@ Plateforme d'investissement en GNL (Gaz Naturel Liquéfié) avec suivi de portef
    
    Remplissez les variables d'environnement dans `.env` avec vos informations Supabase et l'URL de l'API.
 
+### Commandes Git utiles
+
+Pour effectuer une sauvegarde quotidienne de votre travail :
+
+```bash
+git add .; git commit -m "feat: sauvegarde quotidienne"; git push
+```
+
+Cette commande va :
+1. Ajouter tous les fichiers modifiés
+2. Créer un commit avec le message "feat: sauvegarde quotidienne"
+3. Pousser les changements vers le dépôt distant
+
 2. **Installation des dépendances**
    ```bash
    npm install
